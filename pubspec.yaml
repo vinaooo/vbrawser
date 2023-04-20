@@ -1,0 +1,31 @@
+name: vbrawzer
+description: A new Flutter project.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0-430.0.dev <4.0.0'
+
+dependencies:
+  dynamic_color: ^1.6.3
+  flutter:
+    sdk: flutter
+  provider: ^5.0.0
+  flutter_inappwebview: ^5.7.2+3
+  material_color_utilities: ^0.3.0
+  path_provider: ^2.0.14
+  webview_flutter: ^4.1.0
+  webview_flutter_android: ^3.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^2.0.0
+
+
+flutter:
+  uses-material-design: true
