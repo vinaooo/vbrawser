@@ -19,7 +19,9 @@ dependencies:
   path_provider: ^2.0.14
   webview_flutter: ^4.1.0
   webview_flutter_android: ^3.5.3
-
+  html: ^0.15.2
+  http: ^0.13.5
+  url_launcher: ^6.1.10
 dev_dependencies:
   flutter_test:
     sdk: flutter

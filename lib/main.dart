@@ -1,9 +1,12 @@
-// ignore_for_file: use_build_context_synchronously
-
+// ignore_for_file: use_build_context_synchronously, library_prefixes
+import 'package:http/http.dart' as http;
+import 'package:html/parser.dart' as htmlParser;
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:html/parser.dart' show parse;
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:provider/provider.dart';
@@ -91,10 +94,30 @@ class _HomeState extends State<Home> {
   String finalUrl = 'https://flutter.dev';
   final _textController = TextEditingController();
 
+  String _title = '';
+
+  Future<String> getTitle() async {
+    String title = '';
+    try {
+      String url = _textController.text;
+      if (await canLaunchUrlString(url)) {
+        final response = await http.get(Uri.parse(url));
+        final document = parse(response.body);
+        title = document.querySelector('title')!.text;
+      }
+    } catch (e) {
+      debugPrint('Error getting title: $e');
+    }
+    setState(() {
+      _title = title;
+    });
+    return title;
+  }
+
   @override
   void initState() {
     super.initState();
-
+    getTitle();
     const PlatformWebViewControllerCreationParams params =
         PlatformWebViewControllerCreationParams();
 
@@ -232,72 +255,71 @@ class _HomeState extends State<Home> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Opacity(
-                          opacity: 0.97,
-                          child: Material(
-                            elevation: 8,
-                            borderRadius: BorderRadius.circular(80),
-                            child: TextField(
-                              controller: _textController,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: isLightMode
-                                    ? lightColorScheme.primaryContainer
-                                    : darkColorScheme.primaryContainer,
-                                contentPadding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                labelText: 'blablabla',
-                                labelStyle: TextStyle(
-                                  background: Paint()
-                                    ..color = addressBarColor
-                                    ..strokeWidth = 30
-                                    ..strokeJoin = StrokeJoin.round
-                                    ..strokeCap = StrokeCap.round
-                                    ..style = PaintingStyle.stroke,
-                                ),
-                                suffixIcon:
-                                    PopupMenuButton(itemBuilder: (context) {
-                                  return [
-                                    const PopupMenuItem<int>(
-                                      value: 0,
-                                      child: Text("parangoricotirimijuaro"),
-                                    ),
-                                    const PopupMenuItem<int>(
-                                      value: 1,
-                                      child: Text("Settings"),
-                                    ),
-                                    const PopupMenuItem<int>(
-                                      value: 2,
-                                      child: Text("Logout"),
-                                    ),
-                                  ];
-                                }, onSelected: (value) {
-                                  if (value == 0) {
-                                    debugPrint("My account menu is selected.");
-                                  } else if (value == 1) {
-                                    debugPrint("Settings menu is selected.");
-                                  } else if (value == 2) {
-                                    debugPrint("Logout menu is selected.");
-                                  }
-                                }),
-                                border: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(80),
+                            opacity: 0.97,
+                            child: Container(
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: TextField(
+                                controller: _textController,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: isLightMode
+                                      ? lightColorScheme.primaryContainer
+                                      : darkColorScheme.primaryContainer,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  helperText: _title,
+                                  labelText: _title,
+                                  alignLabelWithHint: true,
+                                  labelStyle: TextStyle(
+                                    background: Paint()
+                                      ..color = addressBarColor
+                                      ..strokeWidth = 30
+                                      ..strokeJoin = StrokeJoin.round
+                                      ..strokeCap = StrokeCap.round
+                                      ..style = PaintingStyle.stroke,
                                   ),
-                                  borderSide: BorderSide.none,
+                                  suffixIcon: SizedBox(
+                                    width: 10,
+                                    height: 10,
+                                    child:
+                                        PopupMenuButton(itemBuilder: (context) {
+                                      return [
+                                        const PopupMenuItem<int>(
+                                          value: 0,
+                                          child: Text("parangoricotirimijuaro"),
+                                        ),
+                                        const PopupMenuItem<int>(
+                                          value: 1,
+                                          child: Text("Settings"),
+                                        ),
+                                        const PopupMenuItem<int>(
+                                          value: 2,
+                                          child: Text("Logout"),
+                                        ),
+                                      ];
+                                    }, onSelected: (value) {
+                                      if (value == 0) {
+                                        debugPrint(
+                                            "My account menu is selected.");
+                                      } else if (value == 1) {
+                                        debugPrint(
+                                            "Settings menu is selected.");
+                                      } else if (value == 2) {
+                                        debugPrint("Logout menu is selected.");
+                                      }
+                                    }),
+                                  ),
+                                  border: const OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(80),
+                                    ),
+                                    borderSide: BorderSide.none,
+                                  ),
                                 ),
+                                onSubmitted: (value) => handleSubmitted(value),
                               ),
-                              onSubmitted: (value) {
-                                String finalUrl = value.toLowerCase();
-                                if (!finalUrl.startsWith('http://') &&
-                                    !finalUrl.startsWith('https://')) {
-                                  finalUrl = 'https://$finalUrl';
-                                }
-                                _textController.text = finalUrl;
-                                _controller.loadRequest(Uri.parse(finalUrl));
-                              },
-                            ),
-                          ),
-                        ),
+                            )),
                       ),
                     ),
                   ],
@@ -308,5 +330,18 @@ class _HomeState extends State<Home> {
         );
       },
     );
+  }
+
+  Future<void> handleSubmitted(String value) async {
+    String finalUrl = value.toLowerCase();
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+      finalUrl = 'https://$finalUrl';
+    }
+    setState(() {
+      _textController.text = finalUrl;
+      _controller.loadRequest(Uri.parse(finalUrl));
+      _title = 'Carregando...';
+    });
+    await getTitle();
   }
 }
