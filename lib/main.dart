@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, library_prefixes
+//import 'package:html/parser.dart' as htmlParser;
+
 import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' as htmlParser;
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,45 +12,13 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:provider/provider.dart';
 
-const _brandBlue = Color(0xFF1E88E5);
-//bool _isDemoUsingDynamicColors = false;
+import 'package:google_search_suggestions/google_search_suggestions.dart';
 
-CustomColors lightCustomColors = const CustomColors(danger: Color(0xFFE53935));
-CustomColors darkCustomColors = const CustomColors(danger: Color(0xFFEF9A9A));
+const _brandBlue = Color(0xFF1E88E5);
 
 var brightness =
     SchedulerBinding.instance.platformDispatcher.platformBrightness;
 bool isLightMode = brightness == Brightness.light;
-
-@immutable
-class CustomColors extends ThemeExtension<CustomColors> {
-  const CustomColors({
-    required this.danger,
-  });
-
-  final Color? danger;
-
-  @override
-  CustomColors copyWith({Color? danger}) {
-    return CustomColors(
-      danger: danger ?? this.danger,
-    );
-  }
-
-  @override
-  CustomColors lerp(ThemeExtension<CustomColors>? other, double t) {
-    if (other is! CustomColors) {
-      return this;
-    }
-    return CustomColors(
-      danger: Color.lerp(danger, other.danger, t),
-    );
-  }
-
-  CustomColors harmonized(ColorScheme dynamic) {
-    return copyWith(danger: danger!.harmonizeWith(dynamic.primary));
-  }
-}
 
 void main() {
   runApp(
@@ -192,12 +161,10 @@ class _HomeState extends State<Home> {
           // want to use a brand color to override the dynamic [ColorScheme.secondary].
           lightColorScheme = lightColorScheme.copyWith(secondary: _brandBlue);
           // (Optional) If applicable, harmonize custom colors.
-          lightCustomColors = lightCustomColors.harmonized(lightColorScheme);
 
           // Repeat for the dark color scheme.
           darkColorScheme = darkDynamic.harmonized();
           darkColorScheme = darkColorScheme.copyWith(secondary: _brandBlue);
-          darkCustomColors = darkCustomColors.harmonized(darkColorScheme);
 
           //_isDemoUsingDynamicColors = true; // ignore, only for demo purposes
         } else {
@@ -249,17 +216,17 @@ class _HomeState extends State<Home> {
                   children: [
                     WebViewWidget(controller: _controller),
                     Positioned(
-                      bottom: 16,
-                      left: 16,
-                      right: 16,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Opacity(
                             opacity: 0.97,
                             child: Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
                               child: TextField(
+                                onTap: () => MyBottomSheet.show(context),
                                 controller: _textController,
                                 decoration: InputDecoration(
                                   filled: true,
@@ -343,5 +310,47 @@ class _HomeState extends State<Home> {
       _title = 'Carregando...';
     });
     await getTitle();
+  }
+}
+
+class MyBottomSheet {
+  static void show(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.add),
+                title: Text('Add'),
+                onTap: () {
+                  // Perform add action
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('Edit'),
+                onTap: () {
+                  // Perform edit action
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('Delete'),
+                onTap: () {
+                  // Perform delete action
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
